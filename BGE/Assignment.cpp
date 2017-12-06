@@ -33,53 +33,108 @@ Assignment::~Assignment(void)
 {
 }
 
-
 bool Assignment::Initialise()
 {
-
+	int giraffeSize = 5;
 	physicsFactory->CreateGroundPhysics();
 	physicsFactory->CreateCameraPhysics();
-
-
-	//setGravity(glm::vec3(0, -9, 0));
-	setGravity(glm::vec3(0, 0, 0));
-
-	/*
-	int i = 0,
-		j = 0;
-	int k = 5,
-		l = 5;
-
-	shared_ptr<PhysicsController> box[5][5];
-
-	
-	for (j = 0; j < l; ++j) {
-		for (i = 0; i < k; ++i) {
-			box[i][j] = physicsFactory->CreateBox(5, 5, 5, glm::vec3(5 * i, 5 * j, 0), glm::quat());
-		}
-	}
-	*/
-
-	shared_ptr<PhysicsController> bird = CreateSeagull(glm::vec3(-10, 30, 0), 5);
-	//CreateBird(glm::vec3(-10, 20, 0));
-
+	dynamicsWorld->setGravity(btVector3(0, -30, 0));
+	shared_ptr<PhysicsController> gg = CreateGiraffe(glm::vec3(10, giraffeSize * 7.7, 0), giraffeSize);
+	rightShoulderForward = false;
 
 	if (!Game::Initialise()) {
 		return false;
 	}
 
-
-
 	return true;
 }
 
-void BGE::Assignment::Update()
+void BGE::Assignment::Update(float timeDelta)
 {
-	//cyl->rigidBody->applyTorque(GLToBtVector(glm::vec3(0.0f, 0.0f, 1.0f)));
+	if (keyState[SDL_SCANCODE_G])
+	{
 
-	
+		if (bodyRightFrontShoulderConstraint->getHingeAngle() >= (shoulderHighLimit * 1.1f) && !rightShoulderForward) {
+			rightShoulderForward = true;
+		}
+		if (bodyRightFrontShoulderConstraint->getHingeAngle() <= (shoulderLowLimit * 0.9f) && rightShoulderForward) {
+			rightShoulderForward = false;
+		}
+		if (bodyRightBackShoulderConstraint->getHingeAngle() >= (shoulderHighLimit*1.1f) && !rightShoulderBack) {
+			rightShoulderBack = true;
+		}
+		if (bodyRightBackShoulderConstraint->getHingeAngle() <= (shoulderLowLimit * 0.9f) && rightShoulderBack) {
+			rightShoulderBack = false;
+		}
 
-	Game::Update();
+
+
+		if (rightShoulderForward) {
+			bodyRightFrontShoulderConstraint->enableAngularMotor(true, -250 * timeDelta, 500);
+			rightFrontShoulderLegConstraint->enableAngularMotor(true, 500 * timeDelta, 500);
+			rightFrontLegHoofConstraint->enableAngularMotor(true, 500 * timeDelta, 500);
+		}
+		if (!rightShoulderForward) {
+			bodyRightFrontShoulderConstraint->enableAngularMotor(true, 250 * timeDelta, 500);
+			rightFrontShoulderLegConstraint->enableAngularMotor(true, -500 * timeDelta, 500);
+			rightFrontLegHoofConstraint->enableAngularMotor(true, -500 * timeDelta, 500);
+		}
+
+		if (rightShoulderForward) {
+			bodyLeftFrontShoulderConstraint->enableAngularMotor(true, 250 * timeDelta, 500);
+			leftFrontShoulderLegConstraint->enableAngularMotor(true, -500 * timeDelta, 500);
+			leftFrontLegHoofConstraint->enableAngularMotor(true, -500 * timeDelta, 500);
+		}
+		if (!rightShoulderForward) {
+			bodyLeftFrontShoulderConstraint->enableAngularMotor(true, -250 * timeDelta, 500);
+			leftFrontShoulderLegConstraint->enableAngularMotor(true, 500 * timeDelta, 500);
+			leftFrontLegHoofConstraint->enableAngularMotor(true, 500 * timeDelta, 500);
+		}
+		if (rightShoulderBack) {
+			bodyRightBackShoulderConstraint->enableAngularMotor(true, -250 * timeDelta, 500);
+			rightBackShoulderTopLegConstraint->enableAngularMotor(true, 500 * timeDelta, 500);
+			rightBackBottomLegConstraint->enableAngularMotor(true, 500 * timeDelta, 500);
+			rightBackBottomLegHoofConstraint->enableAngularMotor(true, -125 * timeDelta, 500);
+		}
+
+		if (!backRightShoulderForward) {
+			bodyRightBackShoulderConstraint->enableAngularMotor(true, 250 * timeDelta, 500);
+			rightBackShoulderTopLegConstraint->enableAngularMotor(true, -500 * timeDelta, 500);
+			rightBackBottomLegConstraint->enableAngularMotor(true, -500 * timeDelta, 500);
+			rightBackBottomLegHoofConstraint->enableAngularMotor(true, 125 * timeDelta, 500);
+		}
+		if (backRightShoulderForward) {
+			bodyLeftBackShoulderConstraint->enableAngularMotor(true, 250 * timeDelta, 500);
+			leftBackShoulderTopLegConstraint->enableAngularMotor(true, -500 * timeDelta, 500);
+			leftBackBottomLegConstraint->enableAngularMotor(true, -500 * timeDelta, 500);
+			leftBackBottomLegHoofConstraint->enableAngularMotor(true, 125 * timeDelta, 500);
+		}
+
+		if (!backRightShoulderForward) {
+			bodyLeftBackShoulderConstraint->enableAngularMotor(true, -250 * timeDelta, 500);
+			leftBackShoulderTopLegConstraint->enableAngularMotor(true, -500 * timeDelta, 500);
+			leftBackBottomLegConstraint->enableAngularMotor(true, 500 * timeDelta, 500);
+			leftBackBottomLegHoofConstraint->enableAngularMotor(true, -125 * timeDelta, 500);
+		}
+	}
+
+	else {
+		bodyLeftFrontShoulderConstraint->enableAngularMotor(true, 250, 500);
+		leftFrontShoulderLegConstraint->enableAngularMotor(true, 250, 500);
+		leftFrontLegHoofConstraint->enableAngularMotor(true, 250, 500);
+		bodyRightFrontShoulderConstraint->enableAngularMotor(true, 250, 500);
+		rightFrontShoulderLegConstraint->enableAngularMotor(true, 250, 500);
+		rightFrontLegHoofConstraint->enableAngularMotor(true, 250, 500);
+		bodyLeftBackShoulderConstraint->enableAngularMotor(true, -250, 500);
+		leftBackShoulderTopLegConstraint->enableAngularMotor(true, -250, 500);
+		leftBackBottomLegConstraint->enableAngularMotor(true, 250, 500);
+		leftBackBottomLegHoofConstraint->enableAngularMotor(true, 250, 500);
+		bodyRightBackShoulderConstraint->enableAngularMotor(true, -250, 500);
+		rightBackShoulderTopLegConstraint->enableAngularMotor(true, -250, 500);
+		rightBackBottomLegConstraint->enableAngularMotor(true, 250, 500);
+		rightBackBottomLegHoofConstraint->enableAngularMotor(true, 250, 500);
+	}
+	Game::Update(timeDelta);
 }
 
 void BGE::Assignment::Cleanup()
@@ -87,237 +142,156 @@ void BGE::Assignment::Cleanup()
 	Game::Cleanup();
 }
 
-shared_ptr<PhysicsController> Assignment::CreateSeagull(glm::vec3 position, float scale)
-{
+shared_ptr<PhysicsController> Assignment::CreateGiraffe(glm::vec3 position, float scale) {
+	//measurements for creating the rigid bodies for the legs 
+	float shoulderRadius = scale / 4;
+	float shoulderLength = scale * 2;
+	float legRadius = scale / 6;
+	float frontLegLength = scale * 3;
+	float backLegLength = scale * 1.3;
+	float hoofLength = scale / 3;
 
-	//	float scale = 5;
-	float head_rad = scale / 1.5;
-	shared_ptr<PhysicsController> head = physicsFactory->CreateSphere(head_rad, position + glm::vec3(0, scale + head_rad, scale), glm::quat());
-	shared_ptr<PhysicsController> body = physicsFactory->CreateSphere(scale, position, glm::quat());
-	//btHingeConstraint * head_body = new btHingeConstraint(*head->rigidBody, *body->rigidBody, GLToBtVector(glm::vec3(0, -(head_rad), -(head_rad))), GLToBtVector(glm::vec3(0, scale - 2, scale - 2)), btVector3(1, 0, 0), btVector3(1, 0, 0));	//	body hing bit thing is scale - 2 because head position and scale
+	//hinge measurements for legs 
+	shoulderHighLimit = -glm::radians(75.0f);
+	shoulderLowLimit = -glm::radians(150.0f);
+	frontLegHighLimit = -glm::radians(40.0f);
+	frontLegLowLimit = -glm::radians(180.0f);
+	backTopLegHighLimit = glm::radians(15.0f);
+	backTopLegLowLimit = glm::radians(45.0f);
+	backBottomLegHighLimit = -glm::radians(45.0f);
+	backBottomLegLowLimit = -glm::radians(120.0f);
+	hoofHighLimit = glm::radians(90.0f);
+	hoofLowLimit = -glm::radians(90.0f);
+	backHoofHighLimit = glm::radians(170.0f);
+	backHoofLowLimit = glm::radians(90.0f);
+	backShoulderHighLimit = -glm::radians(75.0f);
+	backShoulderLowLimit = -glm::radians(150.0f);
+
+	glm::quat frontShoulderRotation = glm::quat(-0.1, 0, 0, 1);
+	glm::quat frontLegRotation = glm::quat(0.3, 0, 0, 1);
+	glm::quat hoofRotation = glm::quat(1, 0, 0, 1);
+	glm::quat backShoulderRotation = glm::quat(0.1, 0, 0, 1);
+	glm::quat backTopLegRotation = glm::quat(-0.5, 0, 0, 1);
+
+	//main body cylinder at position 
+	float bodyRadius = scale * 0.55;
+	float bodyLength = scale * 3.5;
+	glm::quat bodyRotation = glm::quat(1, 0, 0, 1);
+	shared_ptr<PhysicsController> body = physicsFactory->CreateCylinder(bodyRadius, bodyLength, position, bodyRotation, false, true);
+
+	//neck and head cylinder
+	float headRadius = scale * 0.35;
+	float headLength = 4.5;
+	float neckRadius = scale * 0.35;
+	float neckLength = scale * 4;
+	neckHighLimit = glm::radians(115.0f);
+	neckLowLimit = glm::radians(115.0f);
+	glm::quat neckRotation = glm::quat(1, 0, 0, 1);
+	glm::vec3 neckRelativePosition = position + glm::vec3(-bodyLength / 2, -neckLength * 0.5, -bodyRadius / 4);
+	glm::vec3 headRelativePosition = neckRelativePosition + glm::vec3(-neckLength / 2 - headRadius * 1.2, bodyRadius, bodyRadius + neckRadius);
+	shared_ptr<PhysicsController> neck = physicsFactory->CreateCylinder(neckRadius, neckLength, neckRelativePosition, neckRotation, false, true);
+	shared_ptr<PhysicsController> head = physicsFactory->CreateCylinder(headRadius, headLength, headRelativePosition, bodyRotation);
+
 	btTransform t1, t2;
 	t1.setIdentity();
 	t2.setIdentity();
-	t1.setOrigin(btVector3(0, -(head_rad), -(head_rad)));
-	t2.setOrigin(btVector3(0, scale - 2, scale - 2));
-	btFixedConstraint * head_body = new btFixedConstraint(*head->rigidBody, *body->rigidBody, t1, t2);
-	dynamicsWorld->addConstraint(head_body);
+	t1.setOrigin(btVector3(0, -headRadius, 0));
+	t2.setOrigin(btVector3(-neckRadius * 1.5, neckLength / 2, 0));
+	head_neck = new btFixedConstraint(*head->rigidBody, *neck->rigidBody, t1, t2);
+	dynamicsWorld->addConstraint(head_neck);
 
-	/*
-	**	wings
-	*/
+	neck_body = new btHingeConstraint(*body->rigidBody, *neck->rigidBody, btVector3(bodyLength * 0.5, bodyLength * 0.5, 0), btVector3(0, 0, 0), btVector3(0, 0, 1), btVector3(0, 0, 1), false);
+	neck_body->setLimit(neckLowLimit, neckHighLimit);
+	dynamicsWorld->addConstraint(neck_body);
 
-	float shoulder_rad = glm::abs((glm::sqrt(2 * (scale * scale)) - scale) / 2);
+	// right front leg cylinders 
+	glm::vec3 rfshoulderRelativePosition = position + glm::vec3(-bodyLength / 2 + bodyLength / 6, -shoulderLength / 2, bodyRadius + shoulderRadius);
+	glm::vec3 rflegRelativePosition = rfshoulderRelativePosition + glm::vec3(-shoulderRadius * 2, -shoulderLength * 1.1, 0);
+	glm::vec3 rhoofRelativePosition = rflegRelativePosition + glm::vec3(-frontLegLength * 0.6, -frontLegLength * 0.6, 0);
+	shared_ptr<PhysicsController> rightFrontShoulder = physicsFactory->CreateCylinder(shoulderRadius, shoulderLength, rfshoulderRelativePosition, frontShoulderRotation, false, true);
+	shared_ptr<PhysicsController> rightFrontLeg = physicsFactory->CreateCylinder(legRadius, frontLegLength, rflegRelativePosition, frontLegRotation, false, true);
+	shared_ptr<PhysicsController> rightHoof = physicsFactory->CreateCylinder(legRadius, hoofLength, rhoofRelativePosition, hoofRotation, false, true);
+	bodyRightFrontShoulderConstraint = new btHingeConstraint(*body->rigidBody, *rightFrontShoulder->rigidBody, btVector3(bodyRadius / 4, bodyLength / 2 - bodyLength / 6, bodyRadius), btVector3(0, -bodyRadius, -shoulderRadius), btVector3(0, 0, 1), btVector3(0, 0, 1), false);
+	bodyRightFrontShoulderConstraint->setLimit(shoulderLowLimit, shoulderHighLimit);
+	Game::dynamicsWorld->addConstraint(bodyRightFrontShoulderConstraint);
+	rightFrontShoulderLegConstraint = new btHingeConstraint(*rightFrontShoulder->rigidBody, *rightFrontLeg->rigidBody, btVector3(0, shoulderLength*0.5 + shoulderRadius*0.5, 0), btVector3(0, -frontLegLength*0.5 - legRadius*0.5, 0), btVector3(0, 0, 1), btVector3(0, 0, 1), true);
+	rightFrontShoulderLegConstraint->setLimit(frontLegLowLimit, frontLegHighLimit);
+	Game::dynamicsWorld->addConstraint(rightFrontShoulderLegConstraint);
+	rightFrontLegHoofConstraint = new btHingeConstraint(*rightFrontLeg->rigidBody, *rightHoof->rigidBody, btVector3(0, frontLegLength*0.5 + legRadius*0.5, 0), btVector3(0, -hoofLength*0.5 - legRadius*0.5, 0), btVector3(0, 0, 1), btVector3(0, 0, 1), false);
+	rightFrontLegHoofConstraint->setLimit(hoofLowLimit, hoofHighLimit);
+	Game::dynamicsWorld->addConstraint(rightFrontLegHoofConstraint);
 
-	glm::vec3 left_wing_hinge = position + glm::vec3(((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), ((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), 0);
-	glm::vec3 right_wing_hinge = position + glm::vec3(-((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), ((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), 0);
+	// left front leg cylinders
+	glm::vec3 lfshoulderRelativePosition = position + glm::vec3(-bodyLength / 2 + bodyLength / 6, -shoulderLength / 2, -bodyRadius - shoulderRadius);
+	glm::vec3 lflegRelativePosition = lfshoulderRelativePosition + glm::vec3(-shoulderRadius * 2, -shoulderLength * 1.1, 0);
+	glm::vec3 lhoofRelativePosition = lflegRelativePosition + glm::vec3(-frontLegLength * 0.6, -frontLegLength * 0.6, 0);
+	shared_ptr<PhysicsController> leftFrontShoulder = physicsFactory->CreateCylinder(shoulderRadius, shoulderLength, lfshoulderRelativePosition, frontShoulderRotation, false, true);
+	shared_ptr<PhysicsController> leftFrontLeg = physicsFactory->CreateCylinder(legRadius, frontLegLength, lflegRelativePosition, frontLegRotation, false, true);
+	shared_ptr<PhysicsController> leftHoof = physicsFactory->CreateCylinder(legRadius, hoofLength, lhoofRelativePosition, hoofRotation, false, true);
+	bodyLeftFrontShoulderConstraint = new btHingeConstraint(*body->rigidBody, *leftFrontShoulder->rigidBody, btVector3(bodyRadius / 4, bodyLength / 2 - bodyLength / 6, -bodyRadius), btVector3(0, -bodyRadius / 4, shoulderRadius), btVector3(0, 0, 1), btVector3(0, 0, 1), false);
+	bodyLeftFrontShoulderConstraint->setLimit(shoulderLowLimit, shoulderHighLimit);
+	Game::dynamicsWorld->addConstraint(bodyLeftFrontShoulderConstraint);
+	leftFrontShoulderLegConstraint = new btHingeConstraint(*leftFrontShoulder->rigidBody, *leftFrontLeg->rigidBody, btVector3(0, shoulderLength*0.5 + shoulderRadius*0.5, 0), btVector3(0, -frontLegLength*0.5 - legRadius*0.5, 0), btVector3(0, 0, 1), btVector3(0, 0, 1), true);
+	leftFrontShoulderLegConstraint->setLimit(frontLegLowLimit, frontLegHighLimit);
+	Game::dynamicsWorld->addConstraint(leftFrontShoulderLegConstraint);
+	leftFrontLegHoofConstraint = new btHingeConstraint(*leftFrontLeg->rigidBody, *leftHoof->rigidBody, btVector3(0, frontLegLength*0.5 + legRadius*0.5, 0), btVector3(0, -hoofLength*0.5 - legRadius*0.5, 0), btVector3(0, 0, 1), btVector3(0, 0, 1), false);
+	leftFrontLegHoofConstraint->setLimit(hoofLowLimit, hoofHighLimit);
+	Game::dynamicsWorld->addConstraint(leftFrontLegHoofConstraint);
 
-	//shared_ptr<PhysicsController> left_shoulder = physicsFactory->CreateBox(scale * 2, scale / 5, scale, left_wing_hinge + glm::vec3((scale + shoulder_rad), 0, 0), glm::quat());
-	
-	glm::quat shoulder_rot = glm::angleAxis(90.0F, glm::vec3(1, 0, 0));
-	shared_ptr<PhysicsController> left_shoulder = physicsFactory->CreateCylinder(shoulder_rad - 0.5, scale / 5, left_wing_hinge, shoulder_rot);
-	btHingeConstraint * body_l_shoulder = new btHingeConstraint(*body->rigidBody, *left_shoulder->rigidBody, GLToBtVector(glm::vec3(((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), ((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), 0)), GLToBtVector(glm::vec3(0, 0, 0)), btVector3(0, 0, 0), btVector3(0, 1, 0));
-	Game::dynamicsWorld->addConstraint(body_l_shoulder);
-	body_l_shoulder->enableAngularMotor(true, 20, 20);
-
-	/*
-	shared_ptr<PhysicsController> left_wing_stick = physicsFactory->CreateBox(scale, scale / 10, scale / 10, left_wing_hinge + glm::vec3(scale / 2, 0, scale / 5), glm::quat());
-	btHingeConstraint * l_shoulder_stick = new btHingeConstraint(*left_shoulder->rigidBody, *left_wing_stick->rigidBody, btVector3(shoulder_rad, 0, 0), btVector3(-(scale - 0.5), 0, 0), btVector3(0, 1, 0), btVector3(0, 0, 1));
-	Game::dynamicsWorld->addConstraint(l_shoulder_stick);
-	*/
-	
-	/*
-	shared_ptr<PhysicsController> left_wing_stable1 = physicsFactory->CreateBox(scale / 10, scale / 10, scale / 5, left_wing_hinge + glm::vec3(scale / 2, -(scale / 5), scale / 5), glm::quat());
-	shared_ptr<PhysicsController> left_wing_stable2 = physicsFactory->CreateBox(scale / 10, scale / 10, scale / 5, left_wing_hinge + glm::vec3(scale / 2, -(scale / 5), scale / 5), glm::quat());
-	btTransform t7, t8;
-	t7.setIdentity();
-	t8.setIdentity();
-	t7.setOrigin(GLToBtVector(left_wing_hinge + glm::vec3(scale / 1.5, (scale / 5), 0) - position));
-	//t7.setOrigin(GLToBtVector(left_wing_hinge - position));
-	t8.setOrigin(btVector3(0, 0, 0));
-	btFixedConstraint * left_wing_stable1_h = new btFixedConstraint(*body->rigidBody, *left_wing_stable1->rigidBody, t7, t8);
-	dynamicsWorld->addConstraint(left_wing_stable1_h);
-
-	btTransform t9, t10;
-	t9.setIdentity();
-	t10.setIdentity();
-	t9.setOrigin(GLToBtVector(left_wing_hinge + glm::vec3(scale / 1.5, -(scale / 5), 0) - position));
-	t10.setOrigin(btVector3(0, 0, 0));
-	btFixedConstraint * left_wing_stable2_h = new btFixedConstraint(*body->rigidBody, *left_wing_stable2->rigidBody, t9, t10);
-	dynamicsWorld->addConstraint(left_wing_stable2_h);
-	*/
-
-
-	//shared_ptr<PhysicsController> left_wing_stick = physicsFactory->CreateBox(scale * 2, scale / 10, scale / 10, left_wing_hinge + glm::vec3((scale) + 2, 0, scale / 5), glm::quat());
-	shared_ptr<PhysicsController> left_wing_stick = physicsFactory->CreateBox(scale * 2, scale / 10, scale, left_wing_hinge + glm::vec3((scale)+2, 0, scale / 5), glm::quat());
-	btHingeConstraint * l_shoulder_stick = new btHingeConstraint(*left_shoulder->rigidBody, *left_wing_stick->rigidBody, btVector3(shoulder_rad, 0, 0), btVector3(-((scale * 2) - shoulder_rad), 0, 0), btVector3(0, 1, 0), btVector3(0, 0, 1));
-	Game::dynamicsWorld->addConstraint(l_shoulder_stick);
-
-	/*
-	btTransform t13, t14;
-	t13.setIdentity();
-	t14.setIdentity();
-	t13.setOrigin(GLToBtVector(left_wing_hinge - position + glm::vec3((scale) + 2, 0, 0)));
-	t14.setOrigin(GLToBtVector(glm::vec3( -((scale / 2) + 2), 0, 0)));
-	//btFixedConstraint * left_stick_stable = new btFixedConstraint(*body->rigidBody, *left_wing_stick->rigidBody, t13, t14);
-	btHingeConstraint * left_stick_stable = new btHingeConstraint(*body->rigidBody, *left_wing_stick->rigidBody, GLToBtVector(left_wing_hinge - position + glm::vec3((scale)+2, 0, 0)), GLToBtVector(glm::vec3(-((scale / 2) + 2), 0, 0)), btVector3(0, 0, 1), btVector3(0, 0, 1));
-	dynamicsWorld->addConstraint(left_stick_stable);
-	*/
-
-
-	/*
-	shared_ptr<PhysicsController> left_wing = physicsFactory->CreateBox(scale * 2, scale / 5, scale, left_wing_hinge + glm::vec3((scale + shoulder_rad), 0, 0) + glm::vec3((scale / 2) + 2, 0, scale / 5), glm::quat());
-
-	btTransform t11, t12;
-	t11.setIdentity();
-	t12.setIdentity();
-	t11.setOrigin(GLToBtVector(left_wing_hinge + glm::vec3((scale) + 2, 0, 0)));
-	//t12.setOrigin(GLToBtVector(left_wing_hinge + glm::vec3(((scale)+shoulder_rad), 0, 0) - position));
-	t12.setOrigin(GLToBtVector(left_wing_hinge + glm::vec3((scale * 2 ) + 2 + shoulder_rad, 0, 0)));
-	btFixedConstraint * left_stick_wing = new btFixedConstraint(*left_wing_stick->rigidBody, *left_wing->rigidBody, t11, t12);
-	dynamicsWorld->addConstraint(left_stick_wing);
-	*/
-
-	//shared_ptr<PhysicsController> right_shoulder = physicsFactory->CreateBox(scale * 2, scale / 5, scale, right_wing_hinge + glm::vec3(-(scale + shoulder_rad), 0, 0), glm::quat());
-	
-
-	shared_ptr<PhysicsController> right_shoulder = physicsFactory->CreateCylinder(shoulder_rad - 0.5, scale / 5, right_wing_hinge, shoulder_rot);
-	btHingeConstraint * body_r_shoulder = new btHingeConstraint(*body->rigidBody, *right_shoulder->rigidBody, GLToBtVector(glm::vec3(-((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), ((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), 0)), GLToBtVector(glm::vec3(0, 0, 0)), btVector3(0, 0, 0), btVector3(0, 1, 0));
-	Game::dynamicsWorld->addConstraint(body_r_shoulder);
-	body_r_shoulder->enableAngularMotor(true, -20, 20);
-
-	shared_ptr<PhysicsController> right_wing_stick = physicsFactory->CreateBox(scale * 2, scale / 10, scale, right_wing_hinge + glm::vec3(- (scale / 2), 0, scale / 5), glm::quat());
-	btHingeConstraint * r_shoulder_stick = new btHingeConstraint(*right_shoulder->rigidBody, *right_wing_stick->rigidBody, btVector3(-shoulder_rad, 0, 0), btVector3((scale * 2) - shoulder_rad, 0, 0), btVector3(0, 1, 0), btVector3(0, 0, 1));
-	Game::dynamicsWorld->addConstraint(r_shoulder_stick);
-
-	/*
-	shared_ptr<PhysicsController> left_wing = physicsFactory->CreateBox(scale * 2, scale / 5, scale, left_wing_hinge + glm::vec3((scale + shoulder_rad), 0, 0), glm::quat());
-	shared_ptr<PhysicsController> right_wing = physicsFactory->CreateBox(scale * 2, scale / 5, scale, right_wing_hinge + glm::vec3(-(scale + shoulder_rad), 0, 0), glm::quat());
-	btHingeConstraint * body_l_wing = new btHingeConstraint(*body->rigidBody, *left_wing->rigidBody, GLToBtVector(glm::vec3(((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), ((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), 0)), GLToBtVector(glm::vec3(-(scale + shoulder_rad), 0, 0)), btVector3(0, 0, 1), btVector3(0, 0, 1));
-	btHingeConstraint * body_r_wing = new btHingeConstraint(*body->rigidBody, *right_wing->rigidBody, GLToBtVector(glm::vec3(-((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), ((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), 0)), GLToBtVector(glm::vec3((scale + shoulder_rad), 0, 0)), btVector3(0, 0, 1), btVector3(0, 0, 1));
-
-	//body_l_wing->enableAngularMotor(true, -5, 5);
-	//body_r_wing->enableAngularMotor(true, 5, 5);
-	//body_l_wing->;
-
-	Game::dynamicsWorld->addConstraint(body_l_wing);
-	Game::dynamicsWorld->addConstraint(body_r_wing);
-	*/
+	// right back leg cylinders 
+	glm::vec3 rbShoulderRelativePosition = position + glm::vec3(bodyLength / 2 - bodyLength / 6, -shoulderLength / 2, bodyRadius + shoulderRadius);
+	glm::vec3 rbtlRelativePosition = rbShoulderRelativePosition + glm::vec3(shoulderRadius*1.5, -shoulderLength / 1.5, 0);
+	glm::vec3 rbblRelativePosition = rbtlRelativePosition + glm::vec3(backLegLength * 0.7, -backLegLength, 0);
+	glm::vec3 rbhoofRelativePosition = rbblRelativePosition + glm::vec3(-legRadius * 2, -backLegLength, 0);
+	shared_ptr<PhysicsController> rightBackShoulder = physicsFactory->CreateCylinder(shoulderRadius, shoulderLength, rbShoulderRelativePosition, backShoulderRotation, false, true);
+	shared_ptr<PhysicsController> rightBackTopLeg = physicsFactory->CreateCylinder(legRadius, backLegLength, rbtlRelativePosition, backTopLegRotation, false, true);
+	shared_ptr<PhysicsController> rightBackBottomLeg = physicsFactory->CreateCylinder(legRadius, backLegLength, rbblRelativePosition, glm::quat(), false, true);
+	shared_ptr<PhysicsController> rightBackHoof = physicsFactory->CreateCylinder(legRadius, hoofLength, rbhoofRelativePosition, hoofRotation, false, true);
+	bodyRightBackShoulderConstraint = new btHingeConstraint(*body->rigidBody, *rightBackShoulder->rigidBody, btVector3(bodyRadius / 4, -bodyLength / 2 + bodyLength / 6, bodyRadius), btVector3(0, -bodyRadius / 4, -shoulderRadius), btVector3(0, 0, 1), btVector3(0, 0, 1), false);
+	bodyRightBackShoulderConstraint->setLimit(backShoulderLowLimit, backShoulderHighLimit);
+	Game::dynamicsWorld->addConstraint(bodyRightBackShoulderConstraint);
+	rightBackShoulderTopLegConstraint = new btHingeConstraint(*rightBackShoulder->rigidBody, *rightBackTopLeg->rigidBody, btVector3(0, (shoulderLength + shoulderRadius)*0.5, 0), btVector3(0, -(backLegLength + legRadius)*0.5, 0), btVector3(0, 0, 1), btVector3(0, 0, 1), true);
+	rightBackShoulderTopLegConstraint->setLimit(backTopLegLowLimit, backTopLegHighLimit);
+	Game::dynamicsWorld->addConstraint(rightBackShoulderTopLegConstraint);
+	rightBackBottomLegConstraint = new btHingeConstraint(*rightBackTopLeg->rigidBody, *rightBackBottomLeg->rigidBody, btVector3(0, (backLegLength + legRadius)*0.5, 0), btVector3(0, -(backLegLength + legRadius)*0.5, 0), btVector3(0, 0, 1), btVector3(0, 0, 1), false);
+	rightBackBottomLegConstraint->setLimit(backBottomLegLowLimit, backBottomLegHighLimit);
+	Game::dynamicsWorld->addConstraint(rightBackBottomLegConstraint);
+	rightBackBottomLegHoofConstraint = new btHingeConstraint(*rightBackBottomLeg->rigidBody, *rightBackHoof->rigidBody, btVector3(0, (backLegLength + legRadius)*0.5, 0), btVector3(0, -(hoofLength + legRadius)*0.5, 0), btVector3(0, 0, 1), btVector3(0, 0, 1), false);
+	rightBackBottomLegHoofConstraint->setLimit(backHoofLowLimit, backHoofHighLimit);
+	Game::dynamicsWorld->addConstraint(rightBackBottomLegHoofConstraint);
 
 
-	/*
-	**	legs
-	*/
-
-	float hip_rad = ((scale + (scale / 2) - (head_rad / 2)) - (scale * (glm::sqrt(3.0) / 2))) / 2;
-	shared_ptr<PhysicsController> left_leg = physicsFactory->CreateCylinder((scale / 10), head_rad, position + glm::vec3((scale / 2), -(scale + (scale / 2.5)), 0), glm::quat());
-	shared_ptr<PhysicsController> right_leg = physicsFactory->CreateCylinder((scale / 10), head_rad, position + glm::vec3(-(scale / 2), -(scale + (scale / 2.5)), 0), glm::quat());
-	/*
-	btHingeConstraint * body_l_leg = new btHingeConstraint(*body->rigidBody, *left_leg->rigidBody, btVector3((scale / 2), -((scale * (glm::sqrt(3.0) / 2)) + hip_rad), 0), btVector3(0, (head_rad / 2) + hip_rad, 0), btVector3(1, 0, 0), btVector3(1, 0, 0));
-	btHingeConstraint * body_r_leg = new btHingeConstraint(*body->rigidBody, *right_leg->rigidBody, btVector3(-(scale / 2), -((scale * (glm::sqrt(3.0) / 2)) + hip_rad), 0), btVector3(0, (head_rad / 2) + hip_rad, 0), btVector3(1, 0, 0), btVector3(1, 0, 0));
-	dynamicsWorld->addConstraint(body_l_leg);
-	dynamicsWorld->addConstraint(body_r_leg);
-	*/
-	btTransform t3, t4;
-	t3.setIdentity();
-	t4.setIdentity();
-	t3.setOrigin(btVector3((scale / 2), -((scale * (glm::sqrt(3.0) / 2)) + hip_rad), 0));
-	t4.setOrigin(btVector3(0, (head_rad / 2) + hip_rad, 0));
-	btFixedConstraint * body_l_leg = new btFixedConstraint(*body->rigidBody, *left_leg->rigidBody, t3, t4);
-	dynamicsWorld->addConstraint(body_l_leg);
-
-	btTransform t5, t6;
-	t5.setIdentity();
-	t6.setIdentity();
-	t5.setOrigin(btVector3(-(scale / 2), -((scale * (glm::sqrt(3.0) / 2)) + hip_rad), 0));
-	t6.setOrigin(btVector3(0, (head_rad / 2) + hip_rad, 0));
-	btFixedConstraint * body_r_leg = new btFixedConstraint(*body->rigidBody, *right_leg->rigidBody, t5, t6);
-	dynamicsWorld->addConstraint(body_r_leg);
+	//left back leg cylinders 
+	glm::vec3 lbShoulderRelativePosition = position + glm::vec3(bodyLength / 2 - bodyLength / 6, -shoulderLength / 2, -bodyRadius - shoulderRadius);
+	glm::vec3 lbtlRelativePosition = lbShoulderRelativePosition + glm::vec3(shoulderRadius*1.5, -shoulderLength / 1.5, 0);
+	glm::vec3 lbblRelativePosition = lbtlRelativePosition + glm::vec3(backLegLength * 0.7, -backLegLength, 0);
+	glm::vec3 lbhoofRelativePosition = lbblRelativePosition + glm::vec3(-legRadius * 2, -backLegLength, 0);
+	shared_ptr<PhysicsController> leftBackShoulder = physicsFactory->CreateCylinder(shoulderRadius, shoulderLength, lbShoulderRelativePosition, backShoulderRotation, false, true);
+	shared_ptr<PhysicsController> leftBackTopLeg = physicsFactory->CreateCylinder(legRadius, backLegLength, lbtlRelativePosition, backTopLegRotation, false, true);
+	shared_ptr<PhysicsController> leftBackBottomLeg = physicsFactory->CreateCylinder(legRadius, backLegLength, lbblRelativePosition, glm::quat(), false, true);
+	shared_ptr<PhysicsController> leftBackHoof = physicsFactory->CreateCylinder(legRadius, hoofLength, lbhoofRelativePosition, hoofRotation, false, true);
+	bodyLeftBackShoulderConstraint = new btHingeConstraint(*body->rigidBody, *leftBackShoulder->rigidBody, btVector3(bodyRadius / 4, -bodyLength / 2 + bodyLength / 6, -bodyRadius), btVector3(0, -bodyRadius / 4, shoulderRadius), btVector3(0, 0, 1), btVector3(0, 0, 1), false);
+	bodyLeftBackShoulderConstraint->setLimit(backShoulderLowLimit, backShoulderHighLimit);
+	Game::dynamicsWorld->addConstraint(bodyLeftBackShoulderConstraint);
+	leftBackShoulderTopLegConstraint = new btHingeConstraint(*leftBackShoulder->rigidBody, *leftBackTopLeg->rigidBody, btVector3(0, (shoulderLength + shoulderRadius)*0.5, 0), btVector3(0, -(backLegLength + legRadius)*0.5, 0), btVector3(0, 0, 1), btVector3(0, 0, 1), true);
+	leftBackShoulderTopLegConstraint->setLimit(backTopLegLowLimit, backTopLegHighLimit);
+	Game::dynamicsWorld->addConstraint(leftBackShoulderTopLegConstraint);
+	leftBackBottomLegConstraint = new btHingeConstraint(*leftBackTopLeg->rigidBody, *leftBackBottomLeg->rigidBody, btVector3(0, (backLegLength + legRadius)*0.5, 0), btVector3(0, -(backLegLength + legRadius)*0.5, 0), btVector3(0, 0, 1), btVector3(0, 0, 1), false);
+	leftBackBottomLegConstraint->setLimit(backBottomLegLowLimit, backBottomLegHighLimit);
+	Game::dynamicsWorld->addConstraint(leftBackBottomLegConstraint);
+	leftBackBottomLegHoofConstraint = new btHingeConstraint(*leftBackBottomLeg->rigidBody, *leftBackHoof->rigidBody, btVector3(0, (backLegLength + legRadius)*0.5, 0), btVector3(0, -(hoofLength + legRadius)*0.5, 0), btVector3(0, 0, 1), btVector3(0, 0, 1), false);
+	leftBackBottomLegHoofConstraint->setLimit(backHoofLowLimit, backHoofHighLimit);
+	Game::dynamicsWorld->addConstraint(leftBackBottomLegHoofConstraint);
 
 
-
-	return body;
-}
-
-shared_ptr<PhysicsController> Assignment::CreateSeagull2(glm::vec3 position)
-{
-
-	float scale = 5;
-	float head_rad = scale / 1.5;
-	shared_ptr<PhysicsController> head = physicsFactory->CreateSphere(head_rad, position + glm::vec3(0, scale + head_rad, scale), glm::quat());
-	shared_ptr<PhysicsController> body = physicsFactory->CreateSphere(scale, position, glm::quat());
-	//btHingeConstraint * head_body = new btHingeConstraint(*head->rigidBody, *body->rigidBody, GLToBtVector(glm::vec3(0, -(head_rad), -(head_rad))), GLToBtVector(glm::vec3(0, scale - 2, scale - 2)), btVector3(1, 0, 0), btVector3(1, 0, 0));	//	body hing bit thing is scale - 2 because head position and scale
-	btTransform t1, t2;
-	t1.setIdentity();
-	t2.setIdentity();
-	t1.setOrigin(btVector3(0, -(head_rad), -(head_rad)));
-	t2.setOrigin(btVector3(0, scale - 2, scale - 2));
-	btFixedConstraint * head_body = new btFixedConstraint(*head->rigidBody, *body->rigidBody, t1, t2);
-	dynamicsWorld->addConstraint(head_body);
-
-	/*
-	**	wings
-	*/
-
-	float shoulder_rad = glm::abs((glm::sqrt(2 * (scale * scale)) - scale) / 2);
-
-	glm::vec3 left_wing_hinge = position + glm::vec3(((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), ((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), 0);
-	glm::vec3 right_wing_hinge = position + glm::vec3(-((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), ((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), 0);
-
-	//shared_ptr<PhysicsController> left_shoulder = physicsFactory->CreateBox(scale * 2, scale / 5, scale, left_wing_hinge + glm::vec3((scale + shoulder_rad), 0, 0), glm::quat());
-
-	//glm::quat shoulder_rot = glm::angleAxis(90.0F, glm::vec3(1, 0, 0));
-	//shared_ptr<PhysicsController> left_shoulder = physicsFactory->CreateCylinder(shoulder_rad - 0.2, scale / 5, left_wing_hinge, shoulder_rot);
-	//btHingeConstraint * body_l_shoulder = new btHingeConstraint(*body->rigidBody, *left_wing->rigidBody, GLToBtVector(glm::vec3(((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), ((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), 0)), GLToBtVector(glm::vec3(-(scale + shoulder_rad), 0, 0)), btVector3(0, 0, 1), btVector3(0, 0, 1));
-	//Game::dynamicsWorld->addConstraint(body_l_shoulder);
-
-	//shared_ptr<PhysicsController> right_shoulder = physicsFactory->CreateBox(scale * 2, scale / 5, scale, right_wing_hinge + glm::vec3(-(scale + shoulder_rad), 0, 0), glm::quat());
-
-	
-	shared_ptr<PhysicsController> left_wing = physicsFactory->CreateBox(scale * 2, scale / 5, scale, left_wing_hinge + glm::vec3((scale + shoulder_rad), 0, 0), glm::quat());
-	shared_ptr<PhysicsController> right_wing = physicsFactory->CreateBox(scale * 2, scale / 5, scale, right_wing_hinge + glm::vec3(-(scale + shoulder_rad), 0, 0), glm::quat());
-	btHingeConstraint * body_l_wing = new btHingeConstraint(*body->rigidBody, *left_wing->rigidBody, GLToBtVector(glm::vec3(((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), ((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), 0)), GLToBtVector(glm::vec3(-(scale + shoulder_rad), 0, 0)), btVector3(0, 0, 1), btVector3(0, 0, 1));
-	btHingeConstraint * body_r_wing = new btHingeConstraint(*body->rigidBody, *right_wing->rigidBody, GLToBtVector(glm::vec3(-((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), ((scale + shoulder_rad) * (1 / glm::sqrt(2.0))), 0)), GLToBtVector(glm::vec3((scale + shoulder_rad), 0, 0)), btVector3(0, 0, 1), btVector3(0, 0, 1));
-
-	body_l_wing->enableAngularMotor(true, -5, 5);
-	body_r_wing->enableAngularMotor(true, 5, 5);
-	//body_l_wing->;
-
-	Game::dynamicsWorld->addConstraint(body_l_wing);
-	Game::dynamicsWorld->addConstraint(body_r_wing);
-	
-
-
-	/*
-	**	legs
-	*/
-
-	float hip_rad = ((scale + (scale / 2) - (head_rad / 2)) - (scale * (glm::sqrt(3.0) / 2))) / 2;
-	shared_ptr<PhysicsController> left_leg = physicsFactory->CreateCylinder((scale / 10), head_rad, position + glm::vec3((scale / 2), -(scale + (scale / 2.5)), 0), glm::quat());
-	shared_ptr<PhysicsController> right_leg = physicsFactory->CreateCylinder((scale / 10), head_rad, position + glm::vec3(-(scale / 2), -(scale + (scale / 2.5)), 0), glm::quat());
-	/*
-	btHingeConstraint * body_l_leg = new btHingeConstraint(*body->rigidBody, *left_leg->rigidBody, btVector3((scale / 2), -((scale * (glm::sqrt(3.0) / 2)) + hip_rad), 0), btVector3(0, (head_rad / 2) + hip_rad, 0), btVector3(1, 0, 0), btVector3(1, 0, 0));
-	btHingeConstraint * body_r_leg = new btHingeConstraint(*body->rigidBody, *right_leg->rigidBody, btVector3(-(scale / 2), -((scale * (glm::sqrt(3.0) / 2)) + hip_rad), 0), btVector3(0, (head_rad / 2) + hip_rad, 0), btVector3(1, 0, 0), btVector3(1, 0, 0));
-	dynamicsWorld->addConstraint(body_l_leg);
-	dynamicsWorld->addConstraint(body_r_leg);
-	*/
-	btTransform t3, t4;
-	t3.setIdentity();
-	t4.setIdentity();
-	t3.setOrigin(btVector3((scale / 2), -((scale * (glm::sqrt(3.0) / 2)) + hip_rad), 0));
-	t4.setOrigin(btVector3(0, (head_rad / 2) + hip_rad, 0));
-	btFixedConstraint * body_l_leg = new btFixedConstraint(*body->rigidBody, *left_leg->rigidBody, t3, t4);
-	dynamicsWorld->addConstraint(body_l_leg);
-
-	btTransform t5, t6;
-	t5.setIdentity();
-	t6.setIdentity();
-	t5.setOrigin(btVector3(-(scale / 2), -((scale * (glm::sqrt(3.0) / 2)) + hip_rad), 0));
-	t6.setOrigin(btVector3(0, (head_rad / 2) + hip_rad, 0));
-	btFixedConstraint * body_r_leg = new btFixedConstraint(*body->rigidBody, *right_leg->rigidBody, t5, t6);
-	dynamicsWorld->addConstraint(body_r_leg);
-
-
+	// tail cylinder 
+	float tailRadius = scale / 6;
+	float tailLength = scale;
+	glm::quat tailRotation = glm::quat(-0.5, 0, 0, 1);
+	glm::vec3 tailStartPosition = position + glm::vec3(bodyLength / 2 + tailLength / 1.2, bodyRadius / 2, 0);
+	shared_ptr<PhysicsController> tailStart = physicsFactory->CreateCylinder(tailRadius, tailLength, tailStartPosition, tailRotation, false, true);
+	BodyTailConstraint = new btPoint2PointConstraint(*body->rigidBody, *tailStart->rigidBody, btVector3(bodyRadius*0.75, -(bodyLength + tailRadius) / 2, 0), btVector3(0, -tailLength * 0.5, 0));
+	Game::dynamicsWorld->addConstraint(BodyTailConstraint);
 
 	return body;
 }

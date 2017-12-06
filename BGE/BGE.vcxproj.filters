@@ -425,7 +425,9 @@
     <ClInclude Include="Person.h">
       <Filter>Kinect1</Filter>
     </ClInclude>
-    <ClInclude Include="Assignment.h" />
+    <ClInclude Include="Assignment.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Content\CubeShader.fragmentshader">
